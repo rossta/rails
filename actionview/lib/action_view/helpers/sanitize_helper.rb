@@ -123,6 +123,13 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
+        def inherited(klass)
+          klass.full_sanitizer = full_sanitizer
+          klass.link_sanitizer = link_sanitizer
+          klass.white_list_sanitizer = white_list_sanitizer
+          super
+        end
+
         # Vendors the full, link and white list sanitizers.
         # Provided strictly for compatibility and can be removed in Rails 5.1.
         def sanitizer_vendor
