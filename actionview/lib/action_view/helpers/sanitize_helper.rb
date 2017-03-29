@@ -8,6 +8,38 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
+
+      included do
+        class_attribute :full_sanitizer, :link_sanitizer, :white_list_sanitizer
+
+        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
+        # any object that responds to +sanitize+.
+        #
+        #   class Application < Rails::Application
+        #     config.action_view.full_sanitizer = MySpecialSanitizer.new
+        #   end
+        #
+        self.full_sanitizer = sanitizer_vendor.full_sanitizer.new
+
+        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
+        # Replace with any object that responds to +sanitize+.
+        #
+        #   class Application < Rails::Application
+        #     config.action_view.link_sanitizer = MySpecialSanitizer.new
+        #   end
+        #
+        self.link_sanitizer = sanitizer_vendor.link_sanitizer.new
+
+        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
+        # Replace with any object that responds to +sanitize+.
+        #
+        #   class Application < Rails::Application
+        #     config.action_view.white_list_sanitizer = MySpecialSanitizer.new
+        #   end
+        #
+        self.white_list_sanitizer = sanitizer_vendor.white_list_sanitizer.new
+      end
+
       # Sanitizes HTML input, stripping all tags and attributes that aren't whitelisted.
       #
       # It also strips href/src attributes with unsafe protocols like
@@ -121,15 +153,6 @@ module ActionView
       end
 
       module ClassMethods #:nodoc:
-        attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
-
-        def inherited(klass)
-          klass.full_sanitizer = full_sanitizer
-          klass.link_sanitizer = link_sanitizer
-          klass.white_list_sanitizer = white_list_sanitizer
-          super
-        end
-
         # Vendors the full, link and white list sanitizers.
         # Provided strictly for compatibility and can be removed in Rails 5.1.
         def sanitizer_vendor
@@ -142,39 +165,6 @@ module ActionView
 
         def sanitized_allowed_attributes
           sanitizer_vendor.white_list_sanitizer.allowed_attributes
-        end
-
-        # Gets the Rails::Html::FullSanitizer instance used by +strip_tags+. Replace with
-        # any object that responds to +sanitize+.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.full_sanitizer = MySpecialSanitizer.new
-        #   end
-        #
-        def full_sanitizer
-          @full_sanitizer ||= sanitizer_vendor.full_sanitizer.new
-        end
-
-        # Gets the Rails::Html::LinkSanitizer instance used by +strip_links+.
-        # Replace with any object that responds to +sanitize+.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.link_sanitizer = MySpecialSanitizer.new
-        #   end
-        #
-        def link_sanitizer
-          @link_sanitizer ||= sanitizer_vendor.link_sanitizer.new
-        end
-
-        # Gets the Rails::Html::WhiteListSanitizer instance used by sanitize and +sanitize_css+.
-        # Replace with any object that responds to +sanitize+.
-        #
-        #   class Application < Rails::Application
-        #     config.action_view.white_list_sanitizer = MySpecialSanitizer.new
-        #   end
-        #
-        def white_list_sanitizer
-          @white_list_sanitizer ||= sanitizer_vendor.white_list_sanitizer.new
         end
       end
     end
