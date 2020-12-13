@@ -1,7 +1,7 @@
 Webpacker
 =========
 
-This guide will show you how to install and use Webpacker to package  JavaScript, CSS, and other assets for the client-side of your Rails application.
+This guide will show you how to install and use Webpacker to package JavaScript, CSS, and other assets for the client-side of your Rails application.
 
 After reading this guide, you will know:
 
@@ -212,6 +212,22 @@ The Webpacker [Documentation](https://github.com/rails/webpacker) gives informat
 ### Deploying Webpacker
 
 Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
+
+Troubleshooting Common Problems
+-------------------------------
+
+## Requiring Assets from Gems
+
+Webpacker is not aware of the JavaScript, CSS and other assets inside the Gems installed in a Rails application. Whereas, with Sprockets assets from Gems could be included in the manifest by adding a `//= require [gem name]` statement, this is not possible out of the box with Webpacker.
+
+There is currently no settled best practice solution on how to resolve this issue. The most common approaches right now are:
+
+1. Publishing the Gem's assets separately as an NPM package and requiring them as one would do with any package with Webpacker
+2. Installing the [rails-erb-loader](https://github.com/usabilityhub/rails-erb-loader) gem and converting one Webpacker pack file into an embedded Ruby file and using the Gem's path in the `import` statement, i.e. `File.join(Gem.loaded_specs['gem_name'].full_gem_path, 'app', 'assets', 'javascripts', 'file_name')`
+3.  Manually copying the specific assets from the Gem folder into `app/javascript` and importing them
+4. Unpacking the gem into the `vendor/gems/` path, adding the vendor path to the `resolved_paths` in `config/webpacker.yml` and importing them from there
+
+The approach one takes depends on the specific needs of the project and the expected frequency of updates to the assets in the Gem itself. At the moment, the most preferable approach is to publish the assets separately as an NPM package, if that is possible.
 
 Additional Documentation
 ------------------------
