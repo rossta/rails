@@ -171,6 +171,22 @@ Also the generic helper `asset_pack_path` takes the local location of a file and
 
 You can also access the image by directly referencing the file from a CSS file in `app/javascript`.
 
+### Using Webpacker for Assets from Gems
+
+Webpacker is not aware of the JavaScript, CSS, and other assets inside the gems installed in a Rails application. Whereas with Sprockets assets from gems could be included in the manifest by adding a `//= require [gem name]` statement, this is not possible out of the box with Webpacker.
+
+There is currently no settled best practice solution on how to resolve this issue.
+
+The recommended best practice is to publish the gem's assets separately as an NPM package and require them as one would do with any package with Webpacker. An example of this approach is Action Cable, which [published a separate NPM package](https://www.npmjs.com/package/actioncable) that can be included in the Webpacker packs, in addition to the [gem](https://rubygems.org/gems/actioncable/).
+
+However, if that is not possible there are other possibilities. The other common approaches are:
+
+1. Installing the [rails-erb-loader](https://github.com/usabilityhub/rails-erb-loader) gem and converting one Webpacker pack file into an embedded Ruby file and using the Gem's path in the `import` statement, i.e. `File.join(Gem.loaded_specs['gem_name'].full_gem_path, 'app', 'assets', 'javascripts', 'file_name')`
+2. Manually copying the specific assets from the gem folder into `app/javascript` and importing them
+3. Unpacking the gem into the `vendor/gems/` path, adding the vendor path to the `resolved_paths` in `config/webpacker.yml` and importing them from there
+
+The approach one takes depends on the specific needs of the project and the expected frequency of updates to the assets in the gem itself. 
+
 ### Webpacker in Rails Engines
 
 As of Webpacker version 5, Webpacker is not "engine-aware," which means Webpacker does not have feature-parity with Sprockets when it comes to use within Rails engines. The [Webpacker engine guides](https://github.com/rails/webpacker/blob/master/docs/engines.md) provide some detailed workarounds to add Webpacker-support and developing locally against an engine with Webpacker.
@@ -212,22 +228,6 @@ The Webpacker [Documentation](https://github.com/rails/webpacker) gives informat
 ### Deploying Webpacker
 
 Webpacker adds a `Webpacker:compile` task to the `assets:precompile` rake task, so any existing deploy pipeline that was using `assets:precompile` should work. The compile task will compile the packs and place them in `public/packs`.
-
-Troubleshooting Common Problems
--------------------------------
-
-## Requiring Assets from Gems
-
-Webpacker is not aware of the JavaScript, CSS and other assets inside the Gems installed in a Rails application. Whereas, with Sprockets assets from Gems could be included in the manifest by adding a `//= require [gem name]` statement, this is not possible out of the box with Webpacker.
-
-There is currently no settled best practice solution on how to resolve this issue. The most common approaches right now are:
-
-1. Publishing the Gem's assets separately as an NPM package and requiring them as one would do with any package with Webpacker
-2. Installing the [rails-erb-loader](https://github.com/usabilityhub/rails-erb-loader) gem and converting one Webpacker pack file into an embedded Ruby file and using the Gem's path in the `import` statement, i.e. `File.join(Gem.loaded_specs['gem_name'].full_gem_path, 'app', 'assets', 'javascripts', 'file_name')`
-3.  Manually copying the specific assets from the Gem folder into `app/javascript` and importing them
-4. Unpacking the gem into the `vendor/gems/` path, adding the vendor path to the `resolved_paths` in `config/webpacker.yml` and importing them from there
-
-The approach one takes depends on the specific needs of the project and the expected frequency of updates to the assets in the Gem itself. At the moment, the most preferable approach is to publish the assets separately as an NPM package, if that is possible.
 
 Additional Documentation
 ------------------------
